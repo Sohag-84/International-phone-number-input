@@ -8,12 +8,14 @@ import 'package:http/http.dart' as http;
 
 class ProductController extends GetxController {
   List<ProductModel> productList = [];
+  int perPage = 5;
+  int page = 1;
 
   String basicAuth =
       'Basic ${base64Encode(utf8.encode('$consumerKey:$secretKey'))}';
 
   Future<List<ProductModel>> getShopProduct() async {
-    String url = "${baseURL}products?per_page=10";
+    String url = "${baseURL}products?per_page=$perPage&page=$page";
     http.Response response = await http.get(
       Uri.parse(url),
       headers: <String, String>{'authorization': basicAuth},
@@ -23,7 +25,9 @@ class ProductController extends GetxController {
       for (var i in categoryData) {
         log(i['name']);
         productList.add(ProductModel.fromJson(i));
+        update();
       }
+      update();
       return productList;
     } else {
       return throw Exception("Failed to load data");
@@ -35,7 +39,8 @@ class ProductController extends GetxController {
       (p) => p.id == productId,
     );
     product.quantity++;
-    product.totalPrice = double.parse(product.price.toString()) * product.quantity;
+    product.totalPrice =
+        double.parse(product.price.toString()) * product.quantity;
     update();
   }
 
@@ -43,7 +48,7 @@ class ProductController extends GetxController {
     final product = productList.firstWhere(
       (p) => p.id == productId,
     );
-    if(product.quantity>0){
+    if (product.quantity > 0) {
       product.quantity--;
     }
     product.totalPrice =
