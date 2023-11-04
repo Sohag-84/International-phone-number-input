@@ -13,43 +13,6 @@ class ProductListScreen extends StatefulWidget {
 }
 
 class _ProductListScreenState extends State<ProductListScreen> {
-  final ProductController controller = Get.put(ProductController());
-  ScrollController _scrollController = ScrollController();
-  bool isLoading = false; // Add this flag
-
-  Future<void> _loadMoreData() async {
-    if (isLoading) {
-      return;
-    }
-
-    setState(() {
-      isLoading = true;
-    });
-
-    try {
-      await controller.getShopProduct();
-     setState(() {
-        controller.perPage++;
-        controller.page++;
-     });
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels ==
-          _scrollController.position.maxScrollExtent) {
-        controller.getShopProduct();
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,41 +21,37 @@ class _ProductListScreenState extends State<ProductListScreen> {
         centerTitle: true,
       ),
       body: GetBuilder<ProductController>(
-        builder: (ProductController controller) {
-          return Column(
-            children: [
-              Container(
-                margin: EdgeInsets.all(10),
-                alignment: Alignment.center,
-                height: 45,
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.circular(8),
+        builder: (controller) {
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                Container(
+                  margin: EdgeInsets.all(10),
+                  alignment: Alignment.center,
+                  height: 45,
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    "Subtotal Price: ${controller.calculateSubtotal(controller.productList)}",
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
                 ),
-                child: Text(
-                  "Subtotal Price: ${controller.calculateSubtotal(controller.productList)}",
-                  style: TextStyle(color: Colors.white, fontSize: 16),
-                ),
-              ),
-              Expanded(
-                child: FutureBuilder(
-                  future: controller.getShopProduct(),
-                  builder: (context, AsyncSnapshot snapshot) {
-                    if (!snapshot.hasData) {
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    } else {
-                      return NotificationListener<ScrollNotification>(
-                        onNotification: (ScrollNotification notification) {
-                          if (notification is ScrollEndNotification) {
-                            _loadMoreData(); // Load more data on scroll end
-                          }
-                          return true;
-                        },
-                        child: ListView.builder(
-                          controller: _scrollController,
+                SizedBox(
+                  height: 200,
+                  child: FutureBuilder(
+                    future: controller.getShopProduct(perPage: 5),
+                    builder: (context, AsyncSnapshot snapshot) {
+                      if (!snapshot.hasData) {
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      } else {
+                        return ListView.builder(
+                          scrollDirection: Axis.horizontal,
                           shrinkWrap: true,
+                          padding: EdgeInsets.all(5),
                           itemCount: snapshot.data.length,
                           itemBuilder: (context, index) {
                             ProductModel product = snapshot.data[index];
@@ -105,7 +64,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                   width: 80,
                                 ),
                                 SizedBox(height: 10),
-                                Text(product.name.toString()),
+                                //Text(product.name.toString()),
                                 Text(product.price.toString()),
                                 Text("Total ${product.totalPrice}"),
                                 Row(
@@ -131,13 +90,253 @@ class _ProductListScreenState extends State<ProductListScreen> {
                               ],
                             );
                           },
-                        ),
-                      );
-                    }
-                  },
+                        );
+                      }
+                    },
+                  ),
                 ),
-              ),
-            ],
+                SizedBox(height: 30),
+               
+                SizedBox(
+                  height: 200,
+                  child: FutureBuilder(
+                    future: controller.getCategoryProduct2(categoryId: "207",perPage: "3"),
+                    builder: (context, AsyncSnapshot snapshot) {
+                      if (!snapshot.hasData) {
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      } else {
+                        return ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          shrinkWrap: true,
+                          padding: EdgeInsets.all(5),
+                          itemCount: snapshot.data.length,
+                          itemBuilder: (context, index) {
+                            ProductModel product = snapshot.data[index];
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Image.network(
+                                  product.images[0].src.toString(),
+                                  height: 80,
+                                  width: 80,
+                                ),
+                                SizedBox(height: 10),
+                                //Text(product.name.toString()),
+                                Text(product.price.toString()),
+                                Text("Total ${product.totalPrice}"),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                        onPressed: () {
+                                          controller.decreaseProductQuantity(
+                                            int.parse(product.id.toString()),
+                                          );
+                                        },
+                                        icon: Icon(Icons.minimize)),
+                                    Text(product.quantity.toString()),
+                                    IconButton(
+                                        onPressed: () {
+                                          controller.increaseProductQuantity(
+                                            int.parse(product.id.toString()),
+                                          );
+                                        },
+                                        icon: Icon(Icons.add)),
+                                    SizedBox(height: 20),
+                                  ],
+                                )
+                              ],
+                            );
+                          },
+                        );
+                      }
+                    },
+                  ),
+                ),
+                SizedBox(height: 30),
+               
+                SizedBox(
+                  height: 200,
+                  child: FutureBuilder(
+                    future: controller.getCategoryProduct3(categoryId: "194",perPage: "3"),
+                    builder: (context, AsyncSnapshot snapshot) {
+                      if (!snapshot.hasData) {
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      } else {
+                        return ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          shrinkWrap: true,
+                          padding: EdgeInsets.all(5),
+                          itemCount: snapshot.data.length,
+                          itemBuilder: (context, index) {
+                            ProductModel product = snapshot.data[index];
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Image.network(
+                                  product.images[0].src.toString(),
+                                  height: 80,
+                                  width: 80,
+                                ),
+                                SizedBox(height: 10),
+                                //Text(product.name.toString()),
+                                Text(product.price.toString()),
+                                Text("Total ${product.totalPrice}"),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                        onPressed: () {
+                                          controller.decreaseProductQuantity(
+                                            int.parse(product.id.toString()),
+                                          );
+                                        },
+                                        icon: Icon(Icons.minimize)),
+                                    Text(product.quantity.toString()),
+                                    IconButton(
+                                        onPressed: () {
+                                          controller.increaseProductQuantity(
+                                            int.parse(product.id.toString()),
+                                          );
+                                        },
+                                        icon: Icon(Icons.add)),
+                                    SizedBox(height: 20),
+                                  ],
+                                )
+                              ],
+                            );
+                          },
+                        );
+                      }
+                    },
+                  ),
+                ),
+                SizedBox(height: 30),
+               
+               
+               
+                SizedBox(
+                  height: 200,
+                  child: FutureBuilder(
+                    future: controller.getCategoryProduct(
+                        categoryId: "207", perPage: 2),
+                    builder: (context, AsyncSnapshot snapshot) {
+                      if (!snapshot.hasData) {
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      } else {
+                        return ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          shrinkWrap: true,
+                          padding: EdgeInsets.all(5),
+                          itemCount: snapshot.data.length,
+                          itemBuilder: (context, index) {
+                            ProductModel product = snapshot.data[index];
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Image.network(
+                                  product.images[0].src.toString(),
+                                  height: 80,
+                                  width: 80,
+                                ),
+                                SizedBox(height: 10),
+                                //Text(product.name.toString()),
+                                Text(product.price.toString()),
+                                Text("Total ${product.totalPrice}"),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                        onPressed: () {
+                                          controller.decreaseProductQuantity(
+                                            int.parse(product.id.toString()),
+                                          );
+                                        },
+                                        icon: Icon(Icons.minimize)),
+                                    Text(product.quantity.toString()),
+                                    IconButton(
+                                        onPressed: () {
+                                         controller.increaseProductQuantity2(
+                                            "207",
+                                            int.parse(product.id.toString()),
+                                          );
+                                        },
+                                        icon: Icon(Icons.add)),
+                                    SizedBox(height: 20),
+                                  ],
+                                )
+                              ],
+                            );
+                          },
+                        );
+                      }
+                    },
+                  ),
+                ),
+                SizedBox(height: 30),
+                SizedBox(
+                  height: 200,
+                  child: FutureBuilder(
+                    future: controller.getCategoryProduct(
+                        categoryId: "194", perPage: 3),
+                    builder: (context, AsyncSnapshot snapshot) {
+                      if (!snapshot.hasData) {
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      } else {
+                        return ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          shrinkWrap: true,
+                          padding: EdgeInsets.all(5),
+                          itemCount: snapshot.data.length,
+                          itemBuilder: (context, index) {
+                            ProductModel product = snapshot.data[index];
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Image.network(
+                                  product.images[0].src.toString(),
+                                  height: 80,
+                                  width: 80,
+                                ),
+                                SizedBox(height: 10),
+                                //Text(product.name.toString()),
+                                Text(product.price.toString()),
+                                Text("Total ${product.totalPrice}"),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                        onPressed: () {
+                                          controller.decreaseProductQuantity(
+                                            int.parse(product.id.toString()),
+                                          );
+                                        },
+                                        icon: Icon(Icons.minimize)),
+                                    Text(product.quantity.toString()),
+                                    IconButton(
+                                        onPressed: () {
+                                          controller.increaseProductQuantity2("194",
+                                            int.parse(product.id.toString()),
+                                          );
+                                        },
+                                        icon: Icon(Icons.add)),
+                                    SizedBox(height: 20),
+                                  ],
+                                )
+                              ],
+                            );
+                          },
+                        );
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
           );
         },
       ),
